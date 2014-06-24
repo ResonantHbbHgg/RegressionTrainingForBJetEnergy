@@ -1,0 +1,31 @@
+using CMSSW_6_1_1 on lxplus5
+cmsenv
+make
+
+1. Prepare the training and testing files:
+mkdir files
+<copy flat tree with desired signal samples to files/tree_Signal.root>
+edit src/RegVars.C to (un)comment the desired inTree name (choose between MSSM or ggHH). remake.
+./RegVars <mass>
+mass is the resonant mass. this value doesn't matter for the ggHH sample, so use whatever.
+
+2. Create the weight file:
+root -l -b -q "Regression/TMVARegression.C(\"SM\")" #for the nonresonant sample
+root -l -b -q "Regression/TMVARegression.C(\"resonant\")" #for the resonant sample
+if step 1 was run correctly, Regression/TMVARegression.C should not need to be changed.
+
+3. Add the variables
+./AddRegVars MSSM_H_m260_8TeV 1
+./AddRegVars MSSM_H_m300_8TeV 1
+./AddRegVars MSSM_H_m350_8TeV 1
+./AddRegVars Radion_m270_8TeV -1
+./AddRegVars Radion_m300_8TeV -1
+./AddRegVars Radion_m350_8TeV -1
+./AddRegVars Radion_m400_8TeV -1
+./AddRegVars ggHH_8TeV 1
+the first argument is the tree name.
+the second designates which subset of events to analyze. -1 for all, 0 for event only, 1 for odd only.
+step 2 trains on even events, so only odd events should be considered. Radion is not used for training.
+AddRegVars keeps events in the 2tag category.
+
+4. Create plots
