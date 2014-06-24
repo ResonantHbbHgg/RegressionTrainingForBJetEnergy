@@ -145,7 +145,7 @@ void TMVARegression( TString Cat="resonant" , TString myMethodList = "" )
 
    factory->AddVariable( "bjet_pt", "bjet_pt", "units", 'F' );
    factory->AddVariable( "bjet_eta", "bjet_eta", "units", 'F' );
-   factory->AddVariable( "bjet_e", "bjet_e", "units", 'F' );
+   factory->AddVariable( "bjet_m:=sqrt(pow(bjet_e,2)-pow(bjet_pt*(1+sinh(bjet_eta)),2))", "bjet_m", "units", 'F' );
    factory->AddVariable( "bjet_phofrac", "bjet_phofrac", "units", 'F' );
    factory->AddVariable( "bjet_nhadfrac", "bjet_nhadfrac", "units", 'F' );
    factory->AddVariable( "bjet_softLeptPt:=(bjet_softLeptIdLooseMu==1 || bjet_softLeptIdEle95==1) ? (bjet_softLeptPt) : (-99)", "bjet_softLeptPt", "units", 'F' );

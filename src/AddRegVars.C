@@ -104,7 +104,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
   readerRegres->AddVariable( "bjet_pt", &var1);
   readerRegres->AddVariable( "bjet_eta", &var2);
-  readerRegres->AddVariable( "bjet_e", &var3);
+  readerRegres->AddVariable( "bjet_m", &var3);
   readerRegres->AddVariable( "bjet_phofrac", &var4);
   readerRegres->AddVariable( "bjet_nhadfrac", &var5);
   readerRegres->AddVariable( "(bjet_softLeptIdLooseMu==1 || bjet_softLeptIdEle95==1) ? (bjet_softLeptPt) : (-99)", &var6);
@@ -180,7 +180,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
     var1=jet_pt[bjets[0]];
     var2=jet_eta[bjets[0]];
-    var3=jet_e[bjets[0]];
+    var3=sqrt(pow(jet_e[bjets[0]],2)-pow(jet_pt[bjets[0]]*(1+sinh(jet_eta[bjets[0]])),2));
     var4=jet_phofrac[bjets[0]];
     var5=jet_nhadfrac[bjets[0]];
     var6=(jet_softLeptIdLooseMu[bjets[0]]==1 || jet_softLeptIdEle95[bjets[0]]==1) ? (jet_softLeptPt[bjets[0]]) : (-99);
@@ -207,7 +207,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
     var1=jet_pt[bjets[1]];
     var2=jet_eta[bjets[1]];
-    var3=jet_e[bjets[1]];
+    var3=sqrt(pow(jet_e[bjets[1]],2)-pow(jet_pt[bjets[1]]*(1+sinh(jet_eta[bjets[1]])),2));
     var4=jet_phofrac[bjets[1]];
     var5=jet_nhadfrac[bjets[1]];
     var6=(jet_softLeptIdLooseMu[bjets[1]]==1 || jet_softLeptIdEle95[bjets[1]]==1) ? (jet_softLeptPt[bjets[1]]) : (-99);
