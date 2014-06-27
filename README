@@ -30,7 +30,6 @@ AddRegVars keeps events in the 2tag category.
 
 4. Create plots and evaluate improvement
 src/RegVal.C can be edited to change some options, but in general it shouldn't need to be changed.
-
 ./RegVal MSSM_H_m260_8TeV 260
 ./RegVal MSSM_H_m300_8TeV 300 #mv to avoid overwriting
 mv plots/resImp_voigt_M-300.png plots/resImp_voigt_M-300_MSSM.png 
