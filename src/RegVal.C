@@ -304,8 +304,8 @@ void RegVal(char *treeName, int Rmass)
   cout << "Mean shifted from " << mean_jj << " +/- " << mean_jjErr << " to " << mean_jjCorr << " +/- " << mean_jjCorrErr << endl;
 
   FILE* output = fopen("results.txt","a");
-  if(Rmass>0) fprintf(output,"%4i %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",Rmass,resChangeV,resChangeErrV,mean_jj,mean_jjErr,mean_jjCorr,mean_jjCorrErr);
-  else fprintf(output,"ggHH %5.2f +/- %4.2f :: %5.1f +/- %3.1f \n",resChangeV,resChangeErrV,newMean,newMeanErr);
+  if(Rmass>0) fprintf(output,"%s %4i %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,Rmass,resChangeV,resChangeErrV,mean_jj,mean_jjErr,mean_jjCorr,mean_jjCorrErr);
+  else fprintf(output,"%s   SM %5.2f +/- %4.2f :: %5.1f +/- %3.1f \n",treeName,resChangeV,resChangeErrV,newMean,newMeanErr);
   fclose(output);
 
   file->Close();
