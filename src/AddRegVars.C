@@ -104,7 +104,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
   readerRegres->AddVariable( "bjet_pt", &var1);
   readerRegres->AddVariable( "bjet_eta", &var2);
-  readerRegres->AddVariable( "bjet_m", &var3);
+  readerRegres->AddVariable( "sqrt(pow(bjet_e,2)-pow(bjet_pt*(1+sinh(bjet_eta)),2))", &var3);
   readerRegres->AddVariable( "bjet_phofrac", &var4);
   readerRegres->AddVariable( "bjet_nhadfrac", &var5);
   readerRegres->AddVariable( "(bjet_softLeptIdLooseMu==1 || bjet_softLeptIdEle95==1) ? (bjet_softLeptPt) : (-99)", &var6);
@@ -142,7 +142,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
     std::vector<int> bjets;
     for(int j=0; j<maxP && jet_pt[j]>0; ++j){
-      if(jet_csvBtag[j]>0.679) bjets.push_back(j);
+      if(jet_csvBtag[j]>0.679 && jet_pt[j]>25 && fabs(jet_eta[j]<2.5)) bjets.push_back(j);
     }
     if(bjets.size()>2){
       int tmp1=-1, tmp2=-1; float ptH=-1;
