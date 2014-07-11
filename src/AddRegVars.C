@@ -83,7 +83,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
   int bjet_bgenMatched, bjet_flavour, bjet_softLeptIdLooseMu, bjet_softLeptIdEle95, bjet_nNeutrals, bjet_nCharged;
 
   int j1_hasSoftLept, j2_hasSoftLept;
-  float j1_pt, j2_pt, j1_genPt, j2_genPt, j1_ptcorr, j2_ptcorr, j1_DRMETJet, j2_DRMETJet, Mjj, Mjjcorr;
+  float j1_pt, j2_pt, j1_genPt, j2_genPt, j1_ptcorr, j2_ptcorr, j1_DRMETJet, j2_DRMETJet, Mjj, Mjjcorr, j1_elefrac, j2_elefrac, j1_mufrac, j2_mufrac;
 
   outTree->Branch("event", &event, "event/I");
   outTree->Branch("j1_pt", &j1_pt, "j1_pt/F");
@@ -96,6 +96,10 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
   outTree->Branch("j2_hasSoftLept", &j2_hasSoftLept, "j2_hasSoftLept/I");
   outTree->Branch("j1_DRMETJet", &j1_DRMETJet, "j1_DRMETJet/F");
   outTree->Branch("j2_DRMETJet", &j2_DRMETJet, "j2_DRMETJet/F");
+  outTree->Branch("j1_elefrac", &j1_elefrac, "j1_elefrac/F");
+  outTree->Branch("j2_elefrac", &j2_elefrac, "j2_elefrac/F");
+  outTree->Branch("j1_mufrac", &j1_mufrac, "j1_mufrac/F");
+  outTree->Branch("j2_mufrac", &j2_mufrac, "j2_mufrac/F");
   outTree->Branch("Mjj", &Mjj, "Mjj/F");
   outTree->Branch("Mjjcorr", &Mjjcorr, "Mjjcorr/F");
 
@@ -203,6 +207,8 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
     j1_genPt=jet_genPt[bjets[0]];
     j1_ptcorr=readerRegres->EvaluateRegression("BDTG")[0];
     j1_DRMETJet=var11;
+    j1_mufrac=jet_mufrac[bjets[0]];
+    j1_elefrac=jet_elefrac[bjets[0]];
     j1_hasSoftLept=(jet_softLeptIdLooseMu[bjets[0]]==1 || jet_softLeptIdEle95[bjets[0]]==1);
 
     var1=jet_pt[bjets[1]];
@@ -230,6 +236,8 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
     j2_genPt=jet_genPt[bjets[1]];
     j2_ptcorr=readerRegres->EvaluateRegression("BDTG")[0];
     j2_DRMETJet=var11;
+    j2_mufrac=jet_mufrac[bjets[1]];
+    j2_elefrac=jet_elefrac[bjets[1]];
     j2_hasSoftLept=(jet_softLeptIdLooseMu[bjets[1]]==1 || jet_softLeptIdEle95[bjets[1]]==1);
 
     TLorentzVector bjet41,bjet42;
