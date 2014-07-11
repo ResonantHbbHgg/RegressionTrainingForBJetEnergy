@@ -34,9 +34,11 @@ src/RegVal.C can be edited to change some options, but in general it shouldn't n
 ./RegVal MSSM_H_m300_8TeV 300 #mv to avoid overwriting
 mv plots/resImp_voigt_M-300.png plots/resImp_voigt_M-300_MSSM.png 
 mv plots/resImp_gauss_M-300.png plots/resImp_gauss_M-300_MSSM.png 
+mv plots/resImp_gauscb_M-300.png plots/resImp_gauscb_M-300_MSSM.png 
 ./RegVal MSSM_H_m350_8TeV 350 #mv to avoid overwriting
 mv plots/resImp_voigt_M-350.png plots/resImp_voigt_M-350_MSSM.png 
 mv plots/resImp_gauss_M-350.png plots/resImp_gauss_M-350_MSSM.png 
+mv plots/resImp_gauscb_M-350.png plots/resImp_gauscb_M-350_MSSM.png 
 ./RegVal Radion_m270_8TeV 270
 ./RegVal Radion_m300_8TeV 300
 ./RegVal Radion_m350_8TeV 350

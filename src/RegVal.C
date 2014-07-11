@@ -45,8 +45,8 @@ using namespace RooFit;
 int doAltSample=0;
 bool doHistApprox=true;
 void RegVal(char*, int);
-void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramCorr);
-void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramCorr, bool isVoigtian);
+void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramCorr);//for voit
+void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramCorr, int fittype);//0 for gaus, 1 for voit, 2 for gausscb
 void plotParameters(TCanvas *c, int Rmass, double *arrayUncorr, int nEventsUncorr, double *arrayCorr, int nEventsCorr, RooRealVar *sig1, RooRealVar *sig2 );
 void sortArray(double*, const int);
 double sigma_eff(double*, int, double&);
@@ -108,10 +108,10 @@ void RegVal(char *treeName, int Rmass)
   double mean_jjCorrErr = dataset.meanVar(HmassCorr)->getError();//rms_jjCorr/sqrt(dataset.numEntries());
   double rms_jjErr = dataset.rmsVar(Hmass)->getError();
   double rms_jjCorrErr = dataset.rmsVar(HmassCorr)->getError();
-  double newMean, newMeanErr, resChangeV, resChangeErrV, resChangeG, resChangeErrG, resChangeS, resChangeErrS;
+  double oldMean, oldMeanErr, newMean, newMeanErr, resChangeV, resChangeErrV, resChangeG, resChangeErrG, resChangeS, resChangeErrS, resChangeGCB, resChangeErrGCB;
 
   bool GAUSS = true;
-  bool DOUBLEGAUSS = false; //actually triple gaus, do not use, a little buggy
+  bool GAUSSCB = true;
   bool VOIGT = true;
 
   TH1D* HmassUncorrHist = new TH1D("h1","h1",nbins,lowVal,highVal);
@@ -166,96 +166,66 @@ void RegVal(char *treeName, int Rmass)
       double resErr= res * sqrt(pow(mu_voigt.getError()/mu_voigt.getVal(),2) + pow(sigma_voigt.getError()/sigma_voigt.getVal(),2) + pow(width_voigt.getError()/width_voigt.getVal(),2));
       double resCorr= fvCorr / mu_voigtCorr.getVal() * 100. / (2. * sqrt(2. * log(2.)));
       double resCorrErr= res * sqrt(pow(mu_voigtCorr.getError()/mu_voigtCorr.getVal(),2) + pow(sigma_voigtCorr.getError()/sigma_voigtCorr.getVal(),2) + pow(width_voigtCorr.getError()/width_voigtCorr.getVal(),2));
-      newMean = mu_voigtCorr.getVal();
-      newMeanErr = mu_voigtCorr.getError();
       resChangeV = (res-resCorr)/res * 100.;
       resChangeErrV = fabs(resChangeV) * sqrt(pow(resCorrErr/resCorr,2) + pow(resErr/res,2));
-      double resS = doHistApprox ? sigma_eff(HmassUncorrHist)/mean_jj * 100. : sigma_eff(HmassUncorrArray,sizeOfHmassUncorrArray,mean_jj)/mean_jj * 100.;
-      double resSerr = fabs(resS)*sqrt(pow(mean_jjErr/mean_jj,2)+pow(rms_jjErr/(resS*mean_jj/100.),2));
-      double resSCorr = doHistApprox ? sigma_eff(HmassCorrHist)/mean_jjCorr * 100. : sigma_eff(HmassCorrArray,sizeOfHmassCorrArray,mean_jjCorr)/mean_jjCorr * 100.;
 
-      double resSCorrerr = fabs(resSCorr)*sqrt(pow(mean_jjCorrErr/mean_jjCorr,2)+pow(rms_jjCorrErr/(resSCorr*mean_jjCorr/100.),2));
-      resChangeS = (resS-resSCorr)/resS * 100.;
-      resChangeErrS = fabs(resChangeS) * sqrt(pow(resSerr/resS,2) + pow(resSCorrerr/resSCorr,2));
       plotParameters( c1, Rmass, &p, &pCorr);
-
       if(Rmass>0) c1->Print(Form("plots/resImp_voigt_M-%i.png",Rmass));
       else c1->Print(Form("plots/resImp_voigt_SM.png"));
       c1->Clear();
 
     }
 
-  if(DOUBLEGAUSS)
+  if(GAUSSCB)
     {
       RooRealVar mu_gauss("mu_gauss", "mean (uncorr.)", mean_jj, mean_jj-rms_jj, mean_jj+rms_jj, "GeV");
-      RooRealVar sigma1_gauss("sigma1_gauss", "sigma1 (uncorr.)", rms_jj, 0.01*rms_jj, 1000.*rms_jj, "GeV");
-      RooRealVar sigma2_gauss("sigma2_gauss", "sigma2 (uncorr.)", rms_jj, 0.01*rms_jj, 1000.*rms_jj, "GeV");
-      RooRealVar sigma3_gauss("sigma3_gauss", "sigma3 (uncorr.)", rms_jj, 0.01*rms_jj, 1000.*rms_jj, "GeV");
-      RooGaussian gauss1("gauss1", "gauss1", Hmass, mu_gauss, sigma1_gauss);
-      RooGaussian gauss2("gauss2", "gauss2", Hmass, mu_gauss, sigma2_gauss);
-      RooGaussian gauss3("gauss3", "gauss3", Hmass, mu_gauss, sigma3_gauss);
-      RooRealVar b1("b1","b1",1.0,0.0,sizeOfHmassCorrArray*100);
-      RooRealVar b2("b2","b2",1.0,0.0,sizeOfHmassCorrArray*100);
-      RooRealVar b3("b3","b3",1.0,0.0,sizeOfHmassCorrArray*100);
-      RooAddPdf doubleGauss("dg","dg",RooArgList(gauss1,gauss2,gauss3),RooArgList(b1,b2,b3));
+      RooRealVar sigma_gauss("sigma_gauss", "sigma_gauss (uncorr.)", rms_jj, 0.01*rms_jj, 1000.*rms_jj, "GeV");
+      RooGaussian gauss("gauss", "gauss", Hmass, mu_gauss, sigma_gauss);
+      RooRealVar sigma_cb("sigma_cb", "sigma_cb (uncorr.)", rms_jj, 0.01*rms_jj, 1000.*rms_jj, "GeV");
+      RooRealVar alpha("alpha","alpha (uncorr.)", 1.0, 0.5, 3);
+      RooRealVar n("n", "n (uncorr.)", 4.0, 0.5, 10);
+      RooCBShape cb("cb","cb",Hmass, mu_gauss,sigma_cb,alpha,n);
+      RooRealVar frac("frac","frac (uncorr.)",0.2, 0, 0.35);
+      RooAddPdf gausscb("gausscb","gausscb",gauss,cb,frac);
 
       RooRealVar mu_gaussCorr("mu_gaussCorr", "mean (corr.)", mean_jjCorr, mean_jjCorr-rms_jjCorr, mean_jjCorr+rms_jjCorr, "GeV");
-      RooRealVar sigma1_gaussCorr("sigma1_gaussCorr", "sigma1 (corr.)", rms_jjCorr, 0.01*rms_jjCorr, 1000.*rms_jjCorr, "GeV");
-      RooRealVar sigma2_gaussCorr("sigma2_gaussCorr", "sigma2 (corr.)", rms_jjCorr, 0.01*rms_jjCorr, 1000.*rms_jjCorr, "GeV");
-      RooRealVar sigma3_gaussCorr("sigma3_gaussCorr", "sigma3 (corr.)", rms_jjCorr, 0.01*rms_jjCorr, 1000.*rms_jjCorr, "GeV");
-      RooGaussian gauss1Corr("gauss1Corr", "gauss1Corr", HmassCorr, mu_gaussCorr, sigma1_gaussCorr);
-      RooGaussian gauss2Corr("gauss2Corr", "gauss2Corr", HmassCorr, mu_gaussCorr, sigma2_gaussCorr);
-      RooGaussian gauss3Corr("gauss3Corr", "gauss3Corr", HmassCorr, mu_gaussCorr, sigma3_gaussCorr);
-      RooRealVar d1("d1","d1",1.0,0.0,sizeOfHmassCorrArray*100);
-      RooRealVar d2("d2","d2",1.0,0.0,sizeOfHmassCorrArray*100);
-      RooRealVar d3("d3","d3",1.0,0.0,sizeOfHmassCorrArray*100);
-      RooAddPdf doubleGaussCorr("dgCorr","dgCorr",RooArgList(gauss1Corr,gauss2Corr,gauss3Corr),RooArgList(d1,d2,d3));
+      RooRealVar sigma_gaussCorr("sigma_gaussCorr", "sigma_gauss (corr.)", rms_jjCorr, 0.01*rms_jjCorr, 1000.*rms_jjCorr, "GeV");
+      RooGaussian gaussCorr("gaussCorr", "gaussCorr", HmassCorr, mu_gaussCorr, sigma_gaussCorr);
+      RooRealVar sigma_cbCorr("sigma_cbCorr", "sigma_cb (corr.)", rms_jjCorr, 0.01*rms_jjCorr, 1000.*rms_jjCorr, "GeV");
+      RooRealVar alphaCorr("alphaCorr","alpha (corr.)", 1.0, 0.5, 3);
+      RooRealVar nCorr("nCorr", "n (corr.)", 4.0, 0.5, 10);
+      RooCBShape cbCorr("cbCorr","cbCorr",HmassCorr, mu_gaussCorr,sigma_cbCorr,alphaCorr,nCorr);
+      RooRealVar fracCorr("fracCorr","frac (corr.)",0.2, 0, 0.35);
+      RooAddPdf gausscbCorr("gausscbCorr","gausscbCorr",gaussCorr,cbCorr,fracCorr);
 
       RooPlot * jj_frame = Hmass.frame(lowVal,highVal);
       RooPlot * jjCorr_frame = HmassCorr.frame(lowVal,highVal);
       dataset.plotOn(jj_frame, LineColor(kRed+2), MarkerColor(kRed), MarkerStyle(8), MarkerSize(1.0), Binning(nbins,lowVal,highVal));
       dataset.plotOn(jjCorr_frame, LineColor(kBlue+2), MarkerColor(kBlue), MarkerStyle(8), MarkerSize(1.0), Binning(nbins,lowVal,highVal));
-      RooFitResult *f = doubleGauss.fitTo(dataset, Save(), Range(lowVal,highVal));
-      doubleGauss.plotOn(jj_frame, LineColor(kRed+2), LineWidth(3));
-      RooFitResult * fCorr = doubleGaussCorr.fitTo(dataset, Save(), Range(lowVal,highVal));
-      doubleGaussCorr.plotOn(jjCorr_frame, LineColor(kBlue+2), LineWidth(3));
+      RooFitResult *f = gausscb.fitTo(dataset, Save(), Range(fitRangeLow,fitRangeHigh));
+      gausscb.plotOn(jj_frame, LineColor(kRed+2), LineWidth(3));
+      RooFitResult * fCorr = gausscbCorr.fitTo(dataset, Save(), Range(fitRangeLow,fitRangeHigh));
+      gausscbCorr.plotOn(jjCorr_frame, LineColor(kBlue+2), LineWidth(3));
       RooArgList p = f->floatParsFinal();
       RooArgList pCorr = fCorr->floatParsFinal();
       jjCorr_frame->GetYaxis()->SetTitleOffset(1.25);
       jjCorr_frame->SetTitle("");
       jjCorr_frame->Draw();
       jj_frame->Draw("same");
-      double f1 = ((RooRealVar*)f->floatParsFinal().at(f->floatParsFinal().index("b1")))->getVal();
-      double f2 = ((RooRealVar*)f->floatParsFinal().at(f->floatParsFinal().index("b2")))->getVal();
-      double f3 = ((RooRealVar*)f->floatParsFinal().at(f->floatParsFinal().index("b3")))->getVal();
-      double f1Err = ((RooRealVar*)f->floatParsFinal().at(f->floatParsFinal().index("b1")))->getError();
-      double f2Err = ((RooRealVar*)f->floatParsFinal().at(f->floatParsFinal().index("b2")))->getError();
-      double f3Err = ((RooRealVar*)f->floatParsFinal().at(f->floatParsFinal().index("b3")))->getError();
-      double g1 = ((RooRealVar*)fCorr->floatParsFinal().at(fCorr->floatParsFinal().index("d1")))->getVal();
-      double g2 = ((RooRealVar*)fCorr->floatParsFinal().at(fCorr->floatParsFinal().index("d2")))->getVal();
-      double g3 = ((RooRealVar*)fCorr->floatParsFinal().at(fCorr->floatParsFinal().index("d3")))->getVal();
-      double g1Err = ((RooRealVar*)fCorr->floatParsFinal().at(fCorr->floatParsFinal().index("d1")))->getError();
-      double g2Err = ((RooRealVar*)fCorr->floatParsFinal().at(fCorr->floatParsFinal().index("d2")))->getError();
-      double g3Err = ((RooRealVar*)fCorr->floatParsFinal().at(fCorr->floatParsFinal().index("d3")))->getError();
-      double res= (f1*sigma1_gauss.getVal()+f2*sigma2_gauss.getVal()+f3*sigma3_gauss.getVal())/mu_gauss.getVal() * 100.0;
-      double resErr= res * sqrt(pow(mu_gauss.getError()/mu_gauss.getVal(),2) + pow(sigma1_gauss.getError()/sigma1_gauss.getVal(),2) + pow(sigma2_gauss.getError()/sigma2_gauss.getVal(),2) + pow(sigma3_gauss.getError()/sigma3_gauss.getVal(),2) + pow(f1Err/f1,2) + pow(f2Err/f2,2) + pow(f3Err/f3,2));
-      double resCorr= (g1*sigma1_gaussCorr.getVal()+g2*sigma2_gaussCorr.getVal()+g3*sigma3_gaussCorr.getVal())/mu_gaussCorr.getVal() * 100.0;
-      double resCorrErr= resCorr * sqrt(pow(mu_gaussCorr.getError()/mu_gaussCorr.getVal(),2) + pow(sigma1_gaussCorr.getError()/sigma1_gaussCorr.getVal(),2) + pow(sigma2_gaussCorr.getError()/sigma2_gaussCorr.getVal(),2) + pow(sigma3_gaussCorr.getError()/sigma3_gaussCorr.getVal(),2) + pow(g1Err/g1,2) + pow(g2Err/g2,2) + pow(g3Err/g3,2));
+      double res = sigma_cb.getVal() / mu_gauss.getVal() * 100.;
+      double resErr= res * sqrt(pow(mu_gauss.getError()/mu_gauss.getVal(),2) + pow(sigma_cb.getError()/sigma_cb.getVal(),2));
+      double resCorr = sigma_cbCorr.getVal() / mu_gaussCorr.getVal() * 100.;
+      double resCorrErr= res * sqrt(pow(mu_gaussCorr.getError()/mu_gaussCorr.getVal(),2) + pow(sigma_cbCorr.getError()/sigma_cbCorr.getVal(),2));
+      
+      oldMean = mu_gauss.getVal();
+      oldMeanErr = mu_gauss.getError();
       newMean = mu_gaussCorr.getVal();
       newMeanErr = mu_gaussCorr.getError();
-      resChangeV = (res-resCorr)/res * 100.;
-      resChangeErrV = fabs(resChangeV) * sqrt(pow(resCorrErr/resCorr,2) + pow(resErr/res,2));
-      double resS = doHistApprox ? sigma_eff(HmassUncorrHist)/mean_jj * 100. : sigma_eff(HmassUncorrArray,sizeOfHmassUncorrArray,mean_jj)/mean_jj * 100.;
-      double resSerr = fabs(resS)*sqrt(pow(mean_jjErr/mean_jj,2)+pow(rms_jjErr/(resS*mean_jj/100.),2));
-      double resSCorr = doHistApprox ? sigma_eff(HmassCorrHist)/mean_jjCorr * 100. : sigma_eff(HmassCorrArray,sizeOfHmassCorrArray,mean_jjCorr)/mean_jjCorr * 100.;
-      double resSCorrerr = fabs(resSCorr)*sqrt(pow(mean_jjCorrErr/mean_jjCorr,2)+pow(rms_jjCorrErr/(resSCorr*mean_jjCorr/100.),2));
-      resChangeS = (resS-resSCorr)/resS * 100.;
-      resChangeErrS = fabs(resChangeS) * sqrt(pow(resSerr/resS,2) + pow(resSCorrerr/resSCorr,2));
-      
-      //plotParameters( c1, Rmass, HmassUncorrArray, sizeOfHmassUncorrArray, HmassCorrArray, sizeOfHmassCorrArray, dataset.rmsVar(Hmass), dataset.rmsVar(HmassCorr));
-      plotParameters( c1, Rmass, &p, &pCorr);
-      if(Rmass>0) c1->Print(Form("plots/resImp_doublegaus_M-%i.png",Rmass));
-      else c1->Print(Form("plots/resImp_doublegaus_SM.png"));
+      resChangeGCB = (res-resCorr)/res * 100.;
+      resChangeErrGCB = fabs(resChangeGCB) * sqrt(pow(resCorrErr/resCorr,2) + pow(resErr/res,2));
+      plotParameters( c1, Rmass, &p, &pCorr, 2);
+      if(Rmass>0) c1->Print(Form("plots/resImp_gauscb_M-%i.png",Rmass));
+      else c1->Print(Form("plots/resImp_gauscb_SM.png"));
       c1->Clear();
     }
 
@@ -273,9 +243,9 @@ void RegVal(char *treeName, int Rmass)
       RooPlot * jjCorr_frame = HmassCorr.frame(lowVal,highVal);
       dataset.plotOn(jj_frame, LineColor(kRed+2), MarkerColor(kRed), MarkerStyle(8), MarkerSize(1.0), Binning(nbins,lowVal,highVal));
       dataset.plotOn(jjCorr_frame, LineColor(kBlue+2), MarkerColor(kBlue), MarkerStyle(8), MarkerSize(1.0), Binning(nbins,lowVal,highVal));
-      RooFitResult *f = gauss.fitTo(dataset, Save(), Range(mean_jj-30, mean_jj+35));
+      RooFitResult *f = gauss.fitTo(dataset, Save(), Range(mean_jj-15, mean_jj+20));
       gauss.plotOn(jj_frame, LineColor(kRed+2), LineWidth(3));
-      RooFitResult * fCorr = gaussCorr.fitTo(dataset, Save(), Range(mean_jjCorr-30, mean_jjCorr+35));
+      RooFitResult * fCorr = gaussCorr.fitTo(dataset, Save(), Range(mean_jjCorr-15, mean_jjCorr+20));
       gaussCorr.plotOn(jjCorr_frame, LineColor(kBlue+2), LineWidth(3));
       RooArgList p = f->floatParsFinal();
       RooArgList pCorr = fCorr->floatParsFinal();
@@ -296,16 +266,30 @@ void RegVal(char *treeName, int Rmass)
       c1->Clear();
     }
 
+  double resS = doHistApprox ? sigma_eff(HmassUncorrHist)/mean_jj * 100. : sigma_eff(HmassUncorrArray,sizeOfHmassUncorrArray,mean_jj)/mean_jj * 100.;
+  double resSerr = fabs(resS)*sqrt(pow(mean_jjErr/mean_jj,2)+pow(rms_jjErr/(resS*mean_jj/100.),2));
+  double resSCorr = doHistApprox ? sigma_eff(HmassCorrHist)/mean_jjCorr * 100. : sigma_eff(HmassCorrArray,sizeOfHmassCorrArray,mean_jjCorr)/mean_jjCorr * 100.;
+  double resSCorrerr = fabs(resSCorr)*sqrt(pow(mean_jjCorrErr/mean_jjCorr,2)+pow(rms_jjCorrErr/(resSCorr*mean_jjCorr/100.),2));
+  resChangeS = (resS-resSCorr)/resS * 100.;
+  resChangeErrS = fabs(resChangeS) * sqrt(pow(resSerr/resS,2) + pow(resSCorrerr/resSCorr,2));
+
   cout << "\n\n";
   cout << "Resolution change from SigmaEff: " << resChangeS << " +/- " << resChangeErrS << endl; 
   cout << "Resolution change from Voigtian: " << resChangeV << " +/- " << resChangeErrV << endl; 
   cout << "Resolution change from Gaussian: " << resChangeG << " +/- " << resChangeErrG << endl; 
-  cout << "New mean (fit): " << newMean << " +/- " << newMeanErr << endl;
-  cout << "Mean shifted from " << mean_jj << " +/- " << mean_jjErr << " to " << mean_jjCorr << " +/- " << mean_jjCorrErr << endl;
+  cout << "Resolution change from Gauss+CB: " << resChangeGCB << " +/- " << resChangeErrGCB << endl; 
+  cout << "Distro mean shifted from " << mean_jj << " +/- " << mean_jjErr << " to " << mean_jjCorr << " +/- " << mean_jjCorrErr << endl;
+  if(GAUSSCB) cout << "Fitted mean shifted from " << oldMean << " +/- " << oldMeanErr << " to " << newMean << " +/- " << newMeanErr << endl;
 
   FILE* output = fopen("results.txt","a");
-  if(Rmass>0) fprintf(output,"%s %4i %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,Rmass,resChangeV,resChangeErrV,mean_jj,mean_jjErr,mean_jjCorr,mean_jjCorrErr);
-  else fprintf(output,"%s SM %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,resChangeV,resChangeErrV,mean_jj,mean_jjErr,mean_jjCorr,mean_jjCorrErr);
+  if(GAUSSCB){
+    if(Rmass>0) fprintf(output,"%s %4i %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,Rmass,resChangeGCB,resChangeErrGCB,oldMean,oldMeanErr,newMean,newMeanErr);
+    else fprintf(output,"       %s   SM %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,resChangeGCB,resChangeErrGCB,oldMean,oldMeanErr,newMean,newMeanErr);
+  }
+  else{
+    if(Rmass>0) fprintf(output,"%s %4i %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,Rmass,resChangeGCB,resChangeErrGCB,mean_jj,mean_jjErr,mean_jjCorr,mean_jjCorrErr);
+    else fprintf(output,"       %s   SM %5.2f +/- %4.2f :: %5.1f +/- %3.1f to %5.1f +/- %3.1f \n",treeName,resChangeGCB,resChangeErrGCB,mean_jj,mean_jjErr,mean_jjCorr,mean_jjCorrErr);
+  }
   fclose(output);
 
   file->Close();
@@ -313,7 +297,7 @@ void RegVal(char *treeName, int Rmass)
   return;
 }
 
-void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramCorr, bool isVoigtian )
+void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramCorr, int fittype )
 {
   c->cd(1);
 
@@ -322,31 +306,35 @@ void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramC
 
   RooRealVar* obj = new RooRealVar();
   TIterator *it = (TIterator*) param->createIterator();
+  if(fittype==2) {it->Next();it->Next();} 
   obj = (RooRealVar*)it->Next();
   mean1 = obj->getVal();
   mean1err = obj->getError();
+  if(fittype==2) {it->Next();} 
   obj = (RooRealVar*)it->Next();
   sigma1 = obj->getVal();
   sigma1err = obj->getError();
-  if(isVoigtian){
+  if(fittype==1){
     obj = (RooRealVar*)it->Next();
     width1 = obj->getVal();
     width1err = obj->getError();
   }
   it = (TIterator*) paramCorr->createIterator();
+  if(fittype==2) {it->Next();it->Next();} 
   obj = (RooRealVar*)it->Next();
   mean2 = obj->getVal();
   mean2err = obj->getError();
+  if(fittype==2) {it->Next();} 
   obj = (RooRealVar*)it->Next();
   sigma2 = obj->getVal();
   sigma2err = obj->getError();
-  if(isVoigtian){
+  if(fittype==1){
     obj = (RooRealVar*)it->Next();
     width2 = obj->getVal();
     width2err = obj->getError();
   }
 
-  if(isVoigtian){
+  if(fittype==1){
     double fg = 2. * sigma1 * sqrt(2. * log(2));
     double fl = 2. * width1;
     double fv = 0.5346 * fl + sqrt(0.2166 * pow(fl, 2.) + pow(fg, 2.));
@@ -400,7 +388,7 @@ void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramC
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,"Before correction:");
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Mean = (%.1f #pm %.1f) GeV",mean1,mean1err));
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Sigma = (%.1f #pm %.1f) GeV",sigma1,sigma1err));
-  if(isVoigtian) latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Width = (%.1f #pm %.1f) GeV",width1,width1err));
+  if(fittype==1) latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Width = (%.1f #pm %.1f) GeV",width1,width1err));
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Res. = %.1f%% #pm %.1f%%",res1,res1err));
   
   pos++;
@@ -409,7 +397,7 @@ void plotParameters(TCanvas *c, int Rmass, RooArgList *param, RooArgList *paramC
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,"After correction:");
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Mean = (%.1f #pm %.1f) GeV",mean2,mean2err));
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Sigma = (%.1f #pm %.1f) GeV",sigma2,sigma2err));
-  if(isVoigtian) latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Width = (%.1f #pm %.1f) GeV",width2,width2err));
+  if(fittype==1) latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Width = (%.1f #pm %.1f) GeV",width2,width2err));
   latexLabel.DrawLatex(0.67,topPos-spacing*pos++,Form("  Res. = %.1f%% #pm %.1f%%",res2,res2err));
   
   pos++;
