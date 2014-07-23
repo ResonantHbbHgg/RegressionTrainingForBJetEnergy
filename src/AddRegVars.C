@@ -83,7 +83,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
   int bjet_bgenMatched, bjet_flavour, bjet_softLeptIdLooseMu, bjet_softLeptIdEle95, bjet_nNeutrals, bjet_nCharged;
 
   int j1_hasSoftLept, j2_hasSoftLept;
-  float j1_pt, j2_pt, j1_genPt, j2_genPt, j1_ptcorr, j2_ptcorr, j1_DRMETJet, j2_DRMETJet, Mjj, Mjjcorr, j1_elefrac, j2_elefrac, j1_mufrac, j2_mufrac;
+  float j1_pt, j2_pt, j1_genPt, j2_genPt, j1_ptcorr, j2_ptcorr, j1_DPhiMETJet, j2_DPhiMETJet, Mjj, Mjjcorr, j1_elefrac, j2_elefrac, j1_mufrac, j2_mufrac;
 
   outTree->Branch("event", &event, "event/I");
   outTree->Branch("j1_pt", &j1_pt, "j1_pt/F");
@@ -94,8 +94,8 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
   outTree->Branch("j2_ptcorr", &j2_ptcorr, "j2_ptcorr/F");
   outTree->Branch("j1_hasSoftLept", &j1_hasSoftLept, "j1_hasSoftLept/I");
   outTree->Branch("j2_hasSoftLept", &j2_hasSoftLept, "j2_hasSoftLept/I");
-  outTree->Branch("j1_DRMETJet", &j1_DRMETJet, "j1_DRMETJet/F");
-  outTree->Branch("j2_DRMETJet", &j2_DRMETJet, "j2_DRMETJet/F");
+  outTree->Branch("j1_DPhiMETJet", &j1_DPhiMETJet, "j1_DPhiMETJet/F");
+  outTree->Branch("j2_DPhiMETJet", &j2_DPhiMETJet, "j2_DPhiMETJet/F");
   outTree->Branch("j1_elefrac", &j1_elefrac, "j1_elefrac/F");
   outTree->Branch("j2_elefrac", &j2_elefrac, "j2_elefrac/F");
   outTree->Branch("j1_mufrac", &j1_mufrac, "j1_mufrac/F");
@@ -108,7 +108,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
   readerRegres->AddVariable( "bjet_pt", &var1);
   readerRegres->AddVariable( "bjet_eta", &var2);
-  readerRegres->AddVariable( "sqrt(pow(bjet_e,2)-pow(bjet_pt*(1+sinh(bjet_eta)),2))", &var3);
+  readerRegres->AddVariable( "bjet_mt", &var3);
   readerRegres->AddVariable( "bjet_phofrac", &var4);
   readerRegres->AddVariable( "bjet_nhadfrac", &var5);
   readerRegres->AddVariable( "(bjet_softLeptIdLooseMu==1 || bjet_softLeptIdEle95==1) ? (bjet_softLeptPt) : (-99)", &var6);
@@ -184,7 +184,7 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
 
     var1=jet_pt[bjets[0]];
     var2=jet_eta[bjets[0]];
-    var3=sqrt(pow(jet_e[bjets[0]],2)-pow(jet_pt[bjets[0]]*(1+sinh(jet_eta[bjets[0]])),2));
+    var3=pow(jet_e[bjets[0]],2)-pow(jet_pt[bjets[0]]*(1+sinh(jet_eta[bjets[0]])),2) > 0 ? sqrt(pow(jet_e[bjets[0]],2)-pow(jet_pt[bjets[0]]*(1+sinh(jet_eta[bjets[0]])),2)) : sqrt(pow(jet_pt[bjets[0]]*(1+sinh(jet_eta[bjets[0]])),2)-pow(jet_e[bjets[0]],2)) ;
     var4=jet_phofrac[bjets[0]];
     var5=jet_nhadfrac[bjets[0]];
     var6=(jet_softLeptIdLooseMu[bjets[0]]==1 || jet_softLeptIdEle95[bjets[0]]==1) ? (jet_softLeptPt[bjets[0]]) : (-99);
@@ -206,14 +206,15 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
     j1_pt=jet_pt[bjets[0]];
     j1_genPt=jet_genPt[bjets[0]];
     j1_ptcorr=readerRegres->EvaluateRegression("BDTG")[0];
-    j1_DRMETJet=var11;
+    //printf("%i %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",event,j1_ptcorr,var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11,var12,var13,var14);
+    j1_DPhiMETJet=var11;
     j1_mufrac=jet_mufrac[bjets[0]];
     j1_elefrac=jet_elefrac[bjets[0]];
     j1_hasSoftLept=(jet_softLeptIdLooseMu[bjets[0]]==1 || jet_softLeptIdEle95[bjets[0]]==1);
 
     var1=jet_pt[bjets[1]];
     var2=jet_eta[bjets[1]];
-    var3=sqrt(pow(jet_e[bjets[1]],2)-pow(jet_pt[bjets[1]]*(1+sinh(jet_eta[bjets[1]])),2));
+    var3=pow(jet_e[bjets[1]],2)-pow(jet_pt[bjets[1]]*(1+sinh(jet_eta[bjets[1]])),2) > 0 ? sqrt(pow(jet_e[bjets[1]],2)-pow(jet_pt[bjets[1]]*(1+sinh(jet_eta[bjets[1]])),2)) : sqrt(pow(jet_pt[bjets[1]]*(1+sinh(jet_eta[bjets[1]])),2)-pow(jet_e[bjets[1]],2)) ;
     var4=jet_phofrac[bjets[1]];
     var5=jet_nhadfrac[bjets[1]];
     var6=(jet_softLeptIdLooseMu[bjets[1]]==1 || jet_softLeptIdEle95[bjets[1]]==1) ? (jet_softLeptPt[bjets[1]]) : (-99);
@@ -235,7 +236,8 @@ void AddRegVars(char* inputFileName, char* outputFileName, char* treeName, int s
     j2_pt=jet_pt[bjets[1]];
     j2_genPt=jet_genPt[bjets[1]];
     j2_ptcorr=readerRegres->EvaluateRegression("BDTG")[0];
-    j2_DRMETJet=var11;
+    //printf("%i %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",event,j2_ptcorr,var1,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11,var12,var13,var14);
+    j2_DPhiMETJet=var11;
     j2_mufrac=jet_mufrac[bjets[1]];
     j2_elefrac=jet_elefrac[bjets[1]];
     j2_hasSoftLept=(jet_softLeptIdLooseMu[bjets[1]]==1 || jet_softLeptIdEle95[bjets[1]]==1);

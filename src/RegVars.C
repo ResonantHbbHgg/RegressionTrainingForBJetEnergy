@@ -36,7 +36,7 @@ void RegVars(int mass, bool splitFile, char *altFile){
   float rho25, MET, METphi;
   float jet_pt[maxP], jet_eta[maxP], jet_phi[maxP], jet_e[maxP], jet_secVtxPt[maxP], jet_secVtxM[maxP], jet_secVtx3dL[maxP], jet_secVtx3deL[maxP], jet_softLeptPt[maxP], jet_softLeptPtRel[maxP], jet_softLeptDR[maxP], jet_emfrac[maxP], jet_hadfrac[maxP], jet_chadfrac[maxP], jet_nhadfrac[maxP], jet_phofrac[maxP], jet_mufrac[maxP], jet_elefrac[maxP], jet_JECUnc[maxP], jet_leadTrackPt[maxP], jet_genPt[maxP];
   int jet_bgenMatched[maxP], jet_flavour[maxP], jet_softLeptIdLooseMu[maxP], jet_softLeptIdEle95[maxP], jet_nNeutrals[maxP], jet_nCharged[maxP];
-  float bjet_pt, bjet_phi, bjet_eta, bjet_e, bjet_secVtxPt, bjet_secVtxM, bjet_secVtx3dL, bjet_secVtx3deL, bjet_emfrac, bjet_hadfrac, bjet_chadfrac, bjet_nhadfrac, bjet_phofrac, bjet_mufrac, bjet_elefrac, bjet_JECUnc, bjet_leadTrackPt, bjet_softLeptPt, bjet_softLeptPtRel, bjet_softLeptDR, bjet_genPt;
+  float bjet_pt, bjet_phi, bjet_eta, bjet_mt, bjet_e, bjet_secVtxPt, bjet_secVtxM, bjet_secVtx3dL, bjet_secVtx3deL, bjet_emfrac, bjet_hadfrac, bjet_chadfrac, bjet_nhadfrac, bjet_phofrac, bjet_mufrac, bjet_elefrac, bjet_JECUnc, bjet_leadTrackPt, bjet_softLeptPt, bjet_softLeptPtRel, bjet_softLeptDR, bjet_genPt;
   int bjet_bgenMatched, bjet_flavour, bjet_softLeptIdLooseMu, bjet_softLeptIdEle95, bjet_nNeutrals, bjet_nCharged;
 
   inTree->SetBranchAddress("event", &event);
@@ -82,6 +82,7 @@ void RegVars(int mass, bool splitFile, char *altFile){
   outTree->Branch("bjet_phi",		    &bjet_phi,		    "bjet_phi/F");		    
   outTree->Branch("bjet_eta",		    &bjet_eta,		    "bjet_eta/F");		    
   outTree->Branch("bjet_e",		    &bjet_e,		    "bjet_e/F");		    
+  outTree->Branch("bjet_mt",		    &bjet_mt,		    "bjet_mt/F");		    
   outTree->Branch("bjet_bgenMatched",	    &bjet_bgenMatched,	    "bjet_bgenMatched/I");	    
   outTree->Branch("bjet_secVtxPt",	    &bjet_secVtxPt,	    "bjet_secVtxPt/F");	    
   outTree->Branch("bjet_secVtxM",	    &bjet_secVtxM,	    "bjet_secVtxM/F");	    
@@ -116,6 +117,7 @@ void RegVars(int mass, bool splitFile, char *altFile){
 	bjet_phi		    = jet_phi[j];		   
 	bjet_eta		    = jet_eta[j];		   
 	bjet_e	    	            = jet_e[j];		   
+	bjet_mt	    	            = pow(jet_e[j],2)-pow(jet_pt[j]*(1+sinh(jet_eta[j])),2) > 0 ? sqrt(pow(jet_e[j],2)-pow(jet_pt[j]*(1+sinh(jet_eta[j])),2)) : sqrt(pow(jet_pt[j]*(1+sinh(jet_eta[j])),2)-pow(jet_e[j],2)) ;
 	bjet_bgenMatched	    = jet_bgenMatched[j];	   
 	bjet_secVtxPt	   	    = jet_secVtxPt[j];	   
 	bjet_secVtxM	   	    = jet_secVtxM[j];	   
