@@ -170,8 +170,8 @@ void RegVal(char *treeName, int Rmass)
       resChangeErrV = fabs(resChangeV) * sqrt(pow(resCorrErr/resCorr,2) + pow(resErr/res,2));
 
       plotParameters( c1, Rmass, &p, &pCorr);
-      if(Rmass>0) c1->Print(Form("plots/resImp_voigt_M-%i.png",Rmass));
-      else c1->Print(Form("plots/resImp_voigt_SM.png"));
+      if(Rmass>0) c1->Print(Form("plots/resImp_voigt_M-%i.pdf",Rmass));
+      else c1->Print(Form("plots/resImp_voigt_SM.pdf"));
       c1->Clear();
 
     }
@@ -224,8 +224,8 @@ void RegVal(char *treeName, int Rmass)
       resChangeGCB = (res-resCorr)/res * 100.;
       resChangeErrGCB = fabs(resChangeGCB) * sqrt(pow(resCorrErr/resCorr,2) + pow(resErr/res,2));
       plotParameters( c1, Rmass, &p, &pCorr, 2);
-      if(Rmass>0) c1->Print(Form("plots/resImp_gauscb_M-%i.png",Rmass));
-      else c1->Print(Form("plots/resImp_gauscb_SM.png"));
+      if(Rmass>0) c1->Print(Form("plots/resImp_gauscb_M-%i.pdf",Rmass));
+      else c1->Print(Form("plots/resImp_gauscb_SM.pdf"));
       c1->Clear();
     }
 
@@ -261,8 +261,8 @@ void RegVal(char *treeName, int Rmass)
       resChangeG = (res-resCorr)/res * 100.;
       resChangeErrG = fabs(resChangeG) * sqrt(pow(resCorrErr/resCorr,2) + pow(resErr/res,2));
       plotParameters( c1, Rmass, &p, &pCorr, 0);
-      if(Rmass>0) c1->Print(Form("plots/resImp_gauss_M-%i.png",Rmass));
-      else c1->Print(Form("plots/resImp_gauss_SM.png"));
+      if(Rmass>0) c1->Print(Form("plots/resImp_gauss_M-%i.pdf",Rmass));
+      else c1->Print(Form("plots/resImp_gauss_SM.pdf"));
       c1->Clear();
     }
 
